@@ -41,7 +41,7 @@ void askForDepts(int backendServer, std::unordered_map<std::string, std::string>
     char buf[MAXDATASIZE];
     struct sockaddr_storage their_addr;
     socklen_t addr_len = sizeof their_addr;
-    int numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+    numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
     if(numbytes < 0){
         perror("list request recv");
         return;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
         std::cout << "Enter Department Name: ";
         std::cin >> dept_query; // read in the query
 
-        
+    }
         
 
     return 0;
