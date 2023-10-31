@@ -60,9 +60,13 @@ int main(int argc, char *argv[])
     const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
 
     char buf[MAXDATASIZE];
-    struct addrinfo *ps[4] = {0, 0, 0, 0};
+    struct addrinfo *ps[4];
     struct addrinfo hints, *servinfo, *p;
     int rv;
+
+    for (int i = 0; i < 4; i++) {
+        ps[i] = new struct addrinfo;
+    }
    
     // setup the sockets
     for(int i = 0; i < 4; i ++){
