@@ -15,105 +15,115 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
 
 #include <arpa/inet.h>
 
-#define PORT "23659"  // the port we will be connecting to
+#define indexMain 0
+#define indexA 1
+#define indexB 2
+#define indexC 3
+
+#define PORTA "30659"
+#define PORTB "30659"
+#define PORTC "30659"
+#define MAINPORT "33659"
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
+void askForDepts(int backendServer, std::unordered_map<std::string, std::string> &dept_to_server, struct addrinfo *ps[], int *sockfds){
+    std::cout << "Querying " << backendServer << std::endl;
+    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServer]->ai_addr, ps[backendServer]->ai_addrlen);
+    if(numbytes < 0){
+        perror("list request send");
+        exit(1);
     }
+    char buf[MAXDATASIZE];
+    struct sockaddr_storage their_addr;
+    socklen_t addr_len = sizeof their_addr;
+    int numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+    if(numbytes < 0){
+        perror("list request recv");
+        return;
+    }
+    buf[numbytes] = '\0';
+    std::string response(buf);
+    std::cout << "Received " << response << std::endl;
 
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+
 
 int main(int argc, char *argv[])
 {
-    int sockfd, numbytes;  
+    int numbytes;
+    int* sockfds;
+    const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
+
     char buf[MAXDATASIZE];
+    struct addrinfo *ps[4] = {0, 0, 0, 0};
     struct addrinfo hints, *servinfo, *p;
     int rv;
-    // char s[INET6_ADDRSTRLEN];
+   
+    // setup the sockets
+    for(int i = 0; i < 4; i ++){
+        
+        memset(&hints, 0, sizeof hints);
+        hints.ai_family = AF_INET6; // ipv6
+        hints.ai_socktype = SOCK_DGRAM;
+        hints.ai_flags = AI_PASSIVE; // use my IP
 
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return 1;
-    }
-
-    // loop through all the results and connect to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
-            perror("client: socket");
-            continue;
+        // store linked list of potential hosting ports in servinfo
+        if ((rv = getaddrinfo("localhost", ports[i], &hints, &servinfo)) != 0) {
+            fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+            return 1;
         }
 
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
-            perror("client: connect");
-            continue;
+        // loop through all the results and bind to the first we can
+        int mysockfd;
+        for(p = servinfo; p != NULL; p = p->ai_next) {
+            if ((mysockfd = socket(p->ai_family, p->ai_socktype,
+                    p->ai_protocol)) == -1) {
+                perror("server: socket");
+                continue;
+            }
+
+            if (bind(mysockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                close(mysockfd);
+                perror("server: bind");
+                continue;
+            }
+
+            break;
         }
 
-        break;
+        freeaddrinfo(servinfo); // all done with this structure
+
+        if (p == NULL)  {
+            fprintf(stderr, "server: failed to bind\n");
+            exit(1);
+        }
+        sockfds[i] = mysockfd;
+        ps[i] = p;
     }
 
-    if (p == NULL) {
-        fprintf(stderr, "client: failed to connect\n");
-        return 2;
-    }
+    std::cout << "Main server is up and running" << std::endl;
 
-    std::cout << "Client is up and running." << std::endl;
+    // query backend servers for departments
+    std::unordered_map<std::string, std::string> dept_to_server;
+    
+    askForDepts(sockfds[indexA], dept_to_server, ps, sockfds);
+    askForDepts(sockfds[indexB], dept_to_server, ps, sockfds);
+    askForDepts(sockfds[indexC], dept_to_server, ps, sockfds);
 
-    freeaddrinfo(servinfo); // all done with this structure
+    return 0;
 
-    // never supposed to exit from here 
     while(1){
         std::string dept_query;
         std::cout << "Enter Department Name: ";
         std::cin >> dept_query; // read in the query
 
         
-        if (send(sockfd, dept_query.c_str(), dept_query.length(), 0) == -1){
-            perror("send");
-            exit(1);
-        }
-
-        std::cout << "Client has sent Department " << dept_query << " to Main Server using TCP." << std::endl;
-                
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-            perror("recv");
-            exit(1);
-        }
-
-        // if the connection is closed
-        if(numbytes == 0){
-            // std::cout << "Connection closed from server, exiting" << std::endl;
-            exit(1);
-        }
-
-        buf[numbytes] = '\0';
-        std::string response(buf);
-
-        // check if not found:
-        if(response == "Not Found"){
-            std::cout << "Department " << dept_query << " not found." << std::endl;
-        }
-        else{
-            std::cout << "Department " << dept_query << " is associated with server " << response << std::endl;
-        }
-
-        std::cout << "-----Start a new query-----" << std::endl;
-    }
+        
 
     return 0;
    
