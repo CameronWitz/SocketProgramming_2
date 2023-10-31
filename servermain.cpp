@@ -56,7 +56,7 @@ void askForDepts(int backendServer, std::unordered_map<std::string, std::string>
 int main(int argc, char *argv[])
 {
     int numbytes;
-    int* sockfds;
+    int* sockfds = {0};
     const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
 
     char buf[MAXDATASIZE];
@@ -86,11 +86,13 @@ int main(int argc, char *argv[])
                 perror("server: socket");
                 continue;
             }
-
-            if (bind(mysockfd, p->ai_addr, p->ai_addrlen) == -1) {
-                close(mysockfd);
-                perror("server: bind");
-                continue;
+            
+            if(i == indexMain){
+                if (bind(mysockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                    close(mysockfd);
+                    perror("server: bind");
+                    continue;
+                }
             }
 
             break;

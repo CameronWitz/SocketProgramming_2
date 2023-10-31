@@ -120,20 +120,13 @@ int main(void)
         return 1;
     }
 
-    // loop through all the results and bind to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((serversockfd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
             perror("server: socket");
             continue;
         }
-
-        if (bind(serversockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(serversockfd);
-            perror("server: bind");
-            continue;
-        }
-
+        // don't need to bind to servermain socket
         break;
     }
 
@@ -184,7 +177,7 @@ int main(void)
                 exit(1);
             }
         } while(numbytes <= 0);
-        
+
         std::cout << "Sent response " << response << "to main server" << std::endl;
 
     }
