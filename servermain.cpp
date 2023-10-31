@@ -31,9 +31,9 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
-void askForDepts(int backendServer, std::unordered_map<std::string, std::string> &dept_to_server, struct addrinfo *ps[], int *sockfds){
+void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, std::string> &dept_to_server, struct addrinfo *ps[], int *sockfds){
     std::cout << "Querying " << backendServer << std::endl;
-    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServer]->ai_addr, ps[backendServer]->ai_addrlen);
+    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd]->ai_addr, ps[backendServerInd]->ai_addrlen);
     if(numbytes < 0){
         perror("list request send");
         exit(1);
@@ -56,7 +56,7 @@ void askForDepts(int backendServer, std::unordered_map<std::string, std::string>
 int main(int argc, char *argv[])
 {
     int numbytes;
-    int* sockfds = {0};
+    int sockfds[4] = {0};
     const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
 
     char buf[MAXDATASIZE];
@@ -102,14 +102,15 @@ int main(int argc, char *argv[])
             break;
         }
 
-        freeaddrinfo(servinfo); // all done with this structure
+         // all done with this structure
 
         if (p == NULL)  {
             fprintf(stderr, "server: failed to bind\n");
             exit(1);
         }
-        sockfds[i] = mysockfd;
-        ps[i] = p;
+        sockfds[i] = mysockfd;ps[i] = p;
+        memcpy(ps[i], p, sizeof(struct addrinfo));
+        freeaddrinfo(servinfo);
     }
 
     std::cout << "Main server is up and running" << std::endl;
@@ -117,9 +118,9 @@ int main(int argc, char *argv[])
     // query backend servers for departments
     std::unordered_map<std::string, std::string> dept_to_server;
     
-    askForDepts(sockfds[indexA], dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexB], dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexC], dept_to_server, ps, sockfds);
+    askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
+    askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
+    askForDepts(sockfds[indexC], indexC, dept_to_server, ps, sockfds);
 
     return 0;
 
