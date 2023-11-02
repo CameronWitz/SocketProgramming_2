@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
     }
    
     // setup the sockets
-    for(int i = 0; i < 4; i ++){
+    //FIXME: change back to 4
+    for(int i = 0; i < 2; i ++){
         
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_INET6; // ipv6
@@ -128,8 +129,9 @@ int main(int argc, char *argv[])
     std::unordered_map<std::string, int> dept_to_server;
     
     askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexC], indexC, dept_to_server, ps, sockfds);
+    //FIXME: only testing A rn
+    // askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
+    // askForDepts(sockfds[indexC], indexC, dept_to_server, ps, sockfds);
 
     return 0;
 
