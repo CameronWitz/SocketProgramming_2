@@ -31,9 +31,9 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
-void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, struct addrinfo *ps[], int *sockfds){
+void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, sockaddr *ps[], socklen_t ps_len[], int *sockfds){
     std::cout << "Querying " << backendServer << std::endl;
-    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd]->ai_addr, ps[backendServerInd]->ai_addrlen);
+    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd], ps_len[backendServerInd]);
     if(numbytes < 0){
         perror("list request send");
         exit(1);
@@ -69,13 +69,10 @@ int main(int argc, char *argv[])
     const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
 
     char buf[MAXDATASIZE];
-    struct addrinfo *ps[4];
+    sockaddr* ps_addr[4] = {0, 0, 0, 0};
+    socklen_t ps_addrlen[4] =  {0, 0, 0, 0};
     struct addrinfo hints, *servinfo, *p;
     int rv;
-
-    for (int i = 0; i < 4; i++) {
-        ps[i] = new struct addrinfo;
-    }
    
     // setup the sockets
     //FIXME: change back to 4
@@ -119,7 +116,9 @@ int main(int argc, char *argv[])
             exit(1);
         }
         sockfds[i] = mysockfd;
-        memcpy(ps[i], p, sizeof(struct addrinfo));
+        ps_addr[i] = p->ai_addr;
+        ps_addrlen[i] = p->ai_addrlen;
+        // memcpy(ps[i], p, sizeof(struct addrinfo));
         freeaddrinfo(servinfo);
     }
 
@@ -128,9 +127,9 @@ int main(int argc, char *argv[])
     // query backend servers for departments
     std::unordered_map<std::string, int> dept_to_server;
     
-    askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexC], indexC, dept_to_server, ps, sockfds);
+    askForDepts(sockfds[indexA], indexA, dept_to_server, ps_addr, ps_addrlen, sockfds);
+    askForDepts(sockfds[indexB], indexB, dept_to_server, ps_addr, ps_addrlen, sockfds);
+    askForDepts(sockfds[indexC], indexC, dept_to_server, ps_addr, ps_addrlen, sockfds);
 
     while(1){
         std::string dept_query;
@@ -145,7 +144,7 @@ int main(int argc, char *argv[])
             int server = dept_to_server[dept_query];
             struct sockaddr_storage their_addr;
             socklen_t addr_len = sizeof their_addr;
-            numbytes = sendto(sockfds[server], dept_query.c_str(), 5, 0, ps[server]->ai_addr, ps[server]->ai_addrlen);
+            numbytes = sendto(sockfds[server], dept_query.c_str(), 5, 0, ps_addr[server], ps_addrlen[server]);
             if(numbytes < 0){
                 perror("request send");
                 return -1;
