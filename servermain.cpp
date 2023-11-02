@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "server: failed to bind\n");
             exit(1);
         }
-        sockfds[i] = mysockfd;ps[i] = p;
+        sockfds[i] = mysockfd;
         memcpy(ps[i], p, sizeof(struct addrinfo));
         freeaddrinfo(servinfo);
     }
