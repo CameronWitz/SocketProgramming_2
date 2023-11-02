@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         ps_addr[i] = p->ai_addr;
         ps_addrlen[i] = p->ai_addrlen;
         // memcpy(ps[i], p, sizeof(struct addrinfo));
-        freeaddrinfo(servinfo);
+        // freeaddrinfo(servinfo); // TODO: this causes everything to break
     }
 
     std::cout << "Main server is up and running" << std::endl;
