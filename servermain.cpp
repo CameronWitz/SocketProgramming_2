@@ -19,10 +19,10 @@
 
 #include <arpa/inet.h>
 
-#define indexMain 0
-#define indexA 1
-#define indexB 2
-#define indexC 3
+#define indexA 0
+#define indexB 1
+#define indexC 2
+#define indexMain 3
 
 #define PORTA "30659"
 #define PORTB "31659"
@@ -31,9 +31,9 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
-void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, struct addrinfo *ps[], int *sockfds){
+void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, sockaddr *ps[], socklen_t ps_len[], int *sockfds){
     std::cout << "Querying " << backendServer << std::endl;
-    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd]->ai_addr, ps[backendServerInd]->ai_addrlen);
+    int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd], ps_len[backendServerInd]);
     if(numbytes < 0){
         perror("list request send");
         exit(1);
@@ -66,18 +66,15 @@ int main(int argc, char *argv[])
 {
     int numbytes;
     int sockfds[4] = {0};
-    const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
+    const char* ports[4] = {PORTA, PORTB, PORTC, MAINPORT};
 
     char buf[MAXDATASIZE];
-    struct addrinfo *ps[4];
+    sockaddr* ps_addr[4] = {0, 0, 0, 0};
+    socklen_t ps_addrlen[4] =  {0, 0, 0, 0};
     struct addrinfo hints, *servinfo, *p;
     int rv;
-
-    for (int i = 0; i < 4; i++) {
-        ps[i] = new struct addrinfo;
-    }
    
-    // setup the sockets
+    // Set up sockets
     for(int i = 0; i < 4; i ++){
         
         memset(&hints, 0, sizeof hints);
@@ -118,8 +115,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
         sockfds[i] = mysockfd;
-        memcpy(ps[i], p, sizeof(struct addrinfo));
-        freeaddrinfo(servinfo);
+        ps_addr[i] = p->ai_addr;
+        ps_addrlen[i] = p->ai_addrlen;
     }
 
     std::cout << "Main server is up and running" << std::endl;
@@ -127,11 +124,9 @@ int main(int argc, char *argv[])
     // query backend servers for departments
     std::unordered_map<std::string, int> dept_to_server;
     
-    askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
-    askForDepts(sockfds[indexC], indexC, dept_to_server, ps, sockfds);
-
-    return 0;
+    askForDepts(sockfds[indexA], indexA, dept_to_server, ps_addr, ps_addrlen, sockfds);
+    askForDepts(sockfds[indexB], indexB, dept_to_server, ps_addr, ps_addrlen, sockfds);
+    askForDepts(sockfds[indexC], indexC, dept_to_server, ps_addr, ps_addrlen, sockfds);
 
     while(1){
         std::string dept_query;
@@ -146,15 +141,21 @@ int main(int argc, char *argv[])
             int server = dept_to_server[dept_query];
             struct sockaddr_storage their_addr;
             socklen_t addr_len = sizeof their_addr;
-            numbytes = recvfrom(sockfds[server], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+            numbytes = sendto(sockfds[server], dept_query.c_str(), 5, 0, ps_addr[server], ps_addrlen[server]);
             if(numbytes < 0){
-                perror("list request recv");
+                perror("request send");
+                return -1;
+            }
+            numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+            if(numbytes < 0){
+                perror("request recv");
                 return -1;
             }
             buf[numbytes] = '\0';
             std::string response(buf);
             size_t beginning = 0;
             std::cout << "Received the following ids:" << std::endl;
+            std::cout << response << std::endl;
             for(size_t i = 0; i < response.length(); i++){
                 if(response[i] == ';'){
                     std::string id = response.substr(beginning, i - beginning);
