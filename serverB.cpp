@@ -21,7 +21,7 @@
 #include <vector>
 #include <set>
 
-#define MYPORT "30659"  // the port users will be connecting to
+#define MYPORT "32659"  // the port users will be connecting to
 #define MAINPORT "33659"
 
 #define BACKLOG 10  // how many pending connections queue will hold
@@ -51,6 +51,8 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
         std::string last_id = student_ids.substr(beginning, student_ids.length()-beginning);
         if(ids_set.find(last_id) != ids_set.end()) // making sure they are unique
             ids_set.insert(last_id);
+        
+        dept_to_ids[department_name] = ids_set;
     }
 
 }
@@ -64,8 +66,8 @@ int main(void)
     int numbytes;
     struct sockaddr_storage their_addr;
     char buf[MAXDATASIZE];
-    socklen_t addr_len;
-    char s[INET6_ADDRSTRLEN];
+    // socklen_t addr_len;
+    // char s[INET6_ADDRSTRLEN];
 
     // First set up for listening on our port
     memset(&hints, 0, sizeof hints);
@@ -120,20 +122,13 @@ int main(void)
         return 1;
     }
 
-    // loop through all the results and bind to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((serversockfd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
             perror("server: socket");
             continue;
         }
-
-        if (bind(serversockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(serversockfd);
-            perror("server: bind");
-            continue;
-        }
-
+        // don't need to bind to servermain socket
         break;
     }
 
@@ -148,7 +143,7 @@ int main(void)
     // SETUP IS DONE
     while(1) {  // respond to requests
         socklen_t addr_len = sizeof their_addr;
-        int numbytes = recvfrom(mysockfd, buf, MAXDATASIZE - 1, 0, (struct sockaddr *) &their_addr, &addr_len);
+        numbytes = recvfrom(mysockfd, buf, MAXDATASIZE - 1, 0, (struct sockaddr *) &their_addr, &addr_len);
         if (numbytes == -1) {
             perror("recvfrom");
             continue;
@@ -157,34 +152,39 @@ int main(void)
         std::string request(buf);
 
         std::cout << "Received request " << request << " from main server" << std::endl;
-
-        // get the actual data for the associated request
-        int found = 0;
-        if(dept_to_ids.find(request) != dept_to_ids.end())
-            found = 1;
         
         std::string response = "";
-        if(found){
-            int firsttime = 1;
-            for(auto &elem : dept_to_ids[request]){
-                response += firsttime ? elem : ";"+elem;
-                firsttime = firsttime & 0;
+        // special initial request
+        if(request == "*list"){
+            // send all the departments for which we are available:
+            for (const auto & it : dept_to_ids) {
+                response += it.first + ";";
             }
-        }
-        else{
-            response = "Not Found.";
         }
 
-        // SEND RESPONSE
-        numbytes = 0;
-        do{
-            numbytes = sendto(serversockfd, response.c_str(), response.length(), 0, p->ai_addr, p->ai_addrlen);
-            if(numbytes < 0){
-                perror("sendto");
-                exit(1);
+        // get the actual data for the associated request
+        else{
+            int found = 0;
+            if(dept_to_ids.find(request) != dept_to_ids.end())
+                found = 1;
+            
+            if(found){
+                
+                for(auto &elem : dept_to_ids[request]){
+                    response += elem + ";";
+                    
+                }
             }
-        } while(numbytes <= 0);
-        
+            else{
+                response = "Not Found.";
+            }
+        }
+        // SEND RESPONSE
+        numbytes = sendto(serversockfd, response.c_str(), response.length(), 0, p->ai_addr, p->ai_addrlen);
+        if(numbytes < 0){
+            perror("sendto");
+            exit(1);
+        }
         std::cout << "Sent response " << response << "to main server" << std::endl;
 
     }
