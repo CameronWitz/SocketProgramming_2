@@ -66,8 +66,8 @@ int main(void)
     int numbytes;
     struct sockaddr_storage their_addr;
     char buf[MAXDATASIZE];
-    socklen_t addr_len;
-    char s[INET6_ADDRSTRLEN];
+    // socklen_t addr_len;
+    // char s[INET6_ADDRSTRLEN];
 
     // First set up for listening on our port
     memset(&hints, 0, sizeof hints);
@@ -143,7 +143,7 @@ int main(void)
     // SETUP IS DONE
     while(1) {  // respond to requests
         socklen_t addr_len = sizeof their_addr;
-        int numbytes = recvfrom(mysockfd, buf, MAXDATASIZE - 1, 0, (struct sockaddr *) &their_addr, &addr_len);
+        numbytes = recvfrom(mysockfd, buf, MAXDATASIZE - 1, 0, (struct sockaddr *) &their_addr, &addr_len);
         if (numbytes == -1) {
             perror("recvfrom");
             continue;

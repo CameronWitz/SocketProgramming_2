@@ -50,8 +50,8 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
     std::string response(buf);
     std::cout << "Received " << response << std::endl;
     
-    int beginning = 0;
-    for(int i = 0; i < response.length(); i++){
+    size_t beginning = 0;
+    for(size_t i = 0; i < response.length(); i++){
         if(response[i] == ';'){
             std::string dept = response.substr(beginning, i - beginning);
             beginning = i + 1;
@@ -153,9 +153,9 @@ int main(int argc, char *argv[])
             }
             buf[numbytes] = '\0';
             std::string response(buf);
-            int beginning = 0;
+            size_t beginning = 0;
             std::cout << "Received the following ids:" << std::endl;
-            for(int i = 0; i < response.length(); i++){
+            for(size_t i = 0; i < response.length(); i++){
                 if(response[i] == ';'){
                     std::string id = response.substr(beginning, i - beginning);
                     beginning = i + 1;
