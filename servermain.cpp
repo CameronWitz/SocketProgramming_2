@@ -25,8 +25,8 @@
 #define indexC 3
 
 #define PORTA "30659"
-#define PORTB "30659"
-#define PORTC "30659"
+#define PORTB "31659"
+#define PORTC "32659"
 #define MAINPORT "33659"
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 

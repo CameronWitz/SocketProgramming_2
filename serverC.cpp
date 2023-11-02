@@ -21,7 +21,7 @@
 #include <vector>
 #include <set>
 
-#define MYPORT "30659"  // the port users will be connecting to
+#define MYPORT "32659"  // the port users will be connecting to
 #define MAINPORT "33659"
 
 #define BACKLOG 10  // how many pending connections queue will hold
