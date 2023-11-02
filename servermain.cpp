@@ -146,9 +146,14 @@ int main(int argc, char *argv[])
             int server = dept_to_server[dept_query];
             struct sockaddr_storage their_addr;
             socklen_t addr_len = sizeof their_addr;
+            numbytes = sendto(sockfds[server], dept_query.c_str(), 5, 0, ps[server]->ai_addr, ps[server]->ai_addrlen);
+            if(numbytes < 0){
+                perror("request send");
+                return -1;
+            }
             numbytes = recvfrom(sockfds[server], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
             if(numbytes < 0){
-                perror("list request recv");
+                perror("request recv");
                 return -1;
             }
             buf[numbytes] = '\0';
