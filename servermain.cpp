@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
    
     // setup the sockets
     //FIXME: change back to 4
-    for(int i = 0; i < 2; i ++){
+    for(int i = 0; i < 3; i ++){
         
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_INET6; // ipv6
@@ -128,12 +128,10 @@ int main(int argc, char *argv[])
     // query backend servers for departments
     std::unordered_map<std::string, int> dept_to_server;
     
-    askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
-    //FIXME: only testing A rn
-    // askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
+    // askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
+    //FIXME: only testing B rn
+    askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
     // askForDepts(sockfds[indexC], indexC, dept_to_server, ps, sockfds);
-
-    return 0;
 
     while(1){
         std::string dept_query;
