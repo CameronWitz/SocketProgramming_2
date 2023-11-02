@@ -157,8 +157,8 @@ int main(void)
         // special initial request
         if(request == "*list"){
             // send all the departments for which we are available:
-            for (const auto & [ key, value ] : dept_to_ids) {
-                response += key + ";";
+            for (const auto & it : dept_to_ids) {
+                response += it.first + ";";
             }
         }
 
