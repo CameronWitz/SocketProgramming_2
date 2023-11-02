@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
             numbytes = recvfrom(sockfds[server], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
             if(numbytes < 0){
                 perror("list request recv");
-                return;
+                return -1;
             }
             buf[numbytes] = '\0';
             std::string response(buf);
