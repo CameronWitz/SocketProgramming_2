@@ -51,6 +51,8 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
         std::string last_id = student_ids.substr(beginning, student_ids.length()-beginning);
         if(ids_set.find(last_id) != ids_set.end()) // making sure they are unique
             ids_set.insert(last_id);
+        
+        dept_to_ids[department_name] = ids_set;
     }
 
 }
@@ -150,34 +152,39 @@ int main(void)
         std::string request(buf);
 
         std::cout << "Received request " << request << " from main server" << std::endl;
-
-        // get the actual data for the associated request
-        int found = 0;
-        if(dept_to_ids.find(request) != dept_to_ids.end())
-            found = 1;
         
         std::string response = "";
-        if(found){
-            int firsttime = 1;
-            for(auto &elem : dept_to_ids[request]){
-                response += firsttime ? elem : ";"+elem;
-                firsttime = firsttime & 0;
+        // special initial request
+        if(request == "*list"){
+            // send all the departments for which we are available:
+            for (const auto & [ key, value ] : dept_to_ids) {
+                response += key + ";";
             }
         }
+
+        // get the actual data for the associated request
         else{
-            response = "Not Found.";
-        }
-
-        // SEND RESPONSE
-        numbytes = 0;
-        do{
-            numbytes = sendto(serversockfd, response.c_str(), response.length(), 0, p->ai_addr, p->ai_addrlen);
-            if(numbytes < 0){
-                perror("sendto");
-                exit(1);
+            int found = 0;
+            if(dept_to_ids.find(request) != dept_to_ids.end())
+                found = 1;
+            
+            if(found){
+                
+                for(auto &elem : dept_to_ids[request]){
+                    response += elem + ";";
+                    
+                }
             }
-        } while(numbytes <= 0);
-
+            else{
+                response = "Not Found.";
+            }
+        }
+        // SEND RESPONSE
+        numbytes = sendto(serversockfd, response.c_str(), response.length(), 0, p->ai_addr, p->ai_addrlen);
+        if(numbytes < 0){
+            perror("sendto");
+            exit(1);
+        }
         std::cout << "Sent response " << response << "to main server" << std::endl;
 
     }

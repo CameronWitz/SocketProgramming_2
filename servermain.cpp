@@ -31,7 +31,7 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
-void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, std::string> &dept_to_server, struct addrinfo *ps[], int *sockfds){
+void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, struct addrinfo *ps[], int *sockfds){
     std::cout << "Querying " << backendServer << std::endl;
     int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd]->ai_addr, ps[backendServerInd]->ai_addrlen);
     if(numbytes < 0){
@@ -49,6 +49,15 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
     buf[numbytes] = '\0';
     std::string response(buf);
     std::cout << "Received " << response << std::endl;
+    
+    int beginning = 0;
+    for(int i = 0; i < response.length(); i++){
+        if(response[i] == ';'){
+            std::string dept = response.substr(beginning, i - beginning);
+            beginning = i + 1;
+            dept_to_server[dept] = backendServerInd;
+        }
+    }
 
 }
 
@@ -116,7 +125,7 @@ int main(int argc, char *argv[])
     std::cout << "Main server is up and running" << std::endl;
 
     // query backend servers for departments
-    std::unordered_map<std::string, std::string> dept_to_server;
+    std::unordered_map<std::string, int> dept_to_server;
     
     askForDepts(sockfds[indexA], indexA, dept_to_server, ps, sockfds);
     askForDepts(sockfds[indexB], indexB, dept_to_server, ps, sockfds);
@@ -128,6 +137,32 @@ int main(int argc, char *argv[])
         std::string dept_query;
         std::cout << "Enter Department Name: ";
         std::cin >> dept_query; // read in the query
+
+        // find the server that this dept is associated with
+        if(dept_to_server.find(dept_query) == dept_to_server.end()){
+            std::cout << "Department does not appear in backend servers." << std::endl;
+        }
+        else{
+            int server = dept_to_server[dept_query];
+            struct sockaddr_storage their_addr;
+            socklen_t addr_len = sizeof their_addr;
+            numbytes = recvfrom(sockfds[server], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+            if(numbytes < 0){
+                perror("list request recv");
+                return;
+            }
+            buf[numbytes] = '\0';
+            std::string response(buf);
+            int beginning = 0;
+            std::cout << "Received the following ids:" << std::endl;
+            for(int i = 0; i < response.length(); i++){
+                if(response[i] == ';'){
+                    std::string id = response.substr(beginning, i - beginning);
+                    beginning = i + 1;
+                    std::cout << id << std::endl;
+                }
+            }
+        }
 
     }
         
