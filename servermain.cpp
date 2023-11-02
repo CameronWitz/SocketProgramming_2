@@ -19,10 +19,10 @@
 
 #include <arpa/inet.h>
 
-#define indexMain 0
-#define indexA 1
-#define indexB 2
-#define indexC 3
+#define indexA 0
+#define indexB 1
+#define indexC 2
+#define indexMain 3
 
 #define PORTA "30659"
 #define PORTB "31659"
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 {
     int numbytes;
     int sockfds[4] = {0};
-    const char* ports[4] = {MAINPORT, PORTA, PORTB, PORTC};
+    const char* ports[4] = {PORTA, PORTB, PORTC, MAINPORT};
 
     char buf[MAXDATASIZE];
     sockaddr* ps_addr[4] = {0, 0, 0, 0};
