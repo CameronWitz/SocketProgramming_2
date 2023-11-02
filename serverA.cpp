@@ -42,14 +42,14 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
             char cur = student_ids[i];
             if(cur == ';'){
                 std::string cur_id = student_ids.substr(beginning, i-beginning);
-                if(ids_set.find(cur_id) == ids_set.end()) // making sure they are unique
+                if(ids_set.find(cur_id) == ids_set.end() || ids_set.empty()) // making sure they are unique
                     ids_set.insert(cur_id);
                 beginning = i + 1;
                 
             }
         }
         std::string last_id = student_ids.substr(beginning, student_ids.length()-beginning);
-        if(ids_set.find(last_id) == ids_set.end()) // making sure they are unique
+        if(ids_set.find(last_id) == ids_set.end() || ids_set.empty()) // making sure they are unique
             ids_set.insert(last_id);
         
         dept_to_ids[department_name] = ids_set;
