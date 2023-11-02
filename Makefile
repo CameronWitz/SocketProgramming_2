@@ -5,7 +5,7 @@ OBJS := $(SRCS:.cpp=.o)
 CC := g++
 CFLAGS := -g -Wall
 
-all: servermain serverA serrverB serverC
+all: servermain serverA serverB serverC
 
 servermain: servermain.o
 	$(CC) $(CFLAGS) -o $@ $^

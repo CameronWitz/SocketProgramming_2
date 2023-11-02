@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
                 perror("request send");
                 return -1;
             }
-            numbytes = recvfrom(sockfds[server], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
+            numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
             if(numbytes < 0){
                 perror("request recv");
                 return -1;
@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
             std::string response(buf);
             size_t beginning = 0;
             std::cout << "Received the following ids:" << std::endl;
+            std::cout << response << std::endl;
             for(size_t i = 0; i < response.length(); i++){
                 if(response[i] == ';'){
                     std::string id = response.substr(beginning, i - beginning);
