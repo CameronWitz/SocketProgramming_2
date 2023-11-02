@@ -74,8 +74,7 @@ int main(int argc, char *argv[])
     struct addrinfo hints, *servinfo, *p;
     int rv;
    
-    // setup the sockets
-    //FIXME: change back to 4
+    // Set up sockets
     for(int i = 0; i < 4; i ++){
         
         memset(&hints, 0, sizeof hints);
@@ -118,8 +117,6 @@ int main(int argc, char *argv[])
         sockfds[i] = mysockfd;
         ps_addr[i] = p->ai_addr;
         ps_addrlen[i] = p->ai_addrlen;
-        // memcpy(ps[i], p, sizeof(struct addrinfo));
-        // freeaddrinfo(servinfo); // TODO: this causes everything to break
     }
 
     std::cout << "Main server is up and running" << std::endl;
