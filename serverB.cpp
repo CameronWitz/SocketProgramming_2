@@ -66,8 +66,6 @@ int main(void)
     int numbytes;
     struct sockaddr_storage their_addr;
     char buf[MAXDATASIZE];
-    // socklen_t addr_len;
-    // char s[INET6_ADDRSTRLEN];
 
     // First set up for listening on our port
     memset(&hints, 0, sizeof hints);
