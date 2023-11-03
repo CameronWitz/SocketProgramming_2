@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
             }
 
             std::cout << "The Main Server has sent request for " << dept_query << " to server ";
-            std::cout << server_str << "using UDP over port " << MAINPORT << std::endl;
+            std::cout << server_str << " using UDP over port " << MAINPORT << std::endl;
 
 
             numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
@@ -168,8 +168,8 @@ int main(int argc, char *argv[])
             size_t beginning = 0;
             
             std::cout << "The Main server has received searching result(s) of " << dept_query;
-            std::cout << "from Backend server " << server_str << std::endl;
-            std::cout << "DEBUG: " << response << std::endl;
+            std::cout << " from Backend server " << server_str << std::endl;
+            // std::cout << "DEBUG: " << response << std::endl;
 
             std::vector<std::string> ids;
             for(size_t i = 0; i < response.length(); i++){
