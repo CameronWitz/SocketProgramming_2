@@ -169,6 +169,7 @@ int main(int argc, char *argv[])
             
             std::cout << "The Main server has received searching result(s) of " << dept_query;
             std::cout << "from Backend server " << server_str << std::endl;
+            std::cout << "DEBUG: " << response << std::endl;
 
             std::vector<std::string> ids;
             for(size_t i = 0; i < response.length(); i++){
@@ -180,12 +181,13 @@ int main(int argc, char *argv[])
             }
             std::cout << "There are " << ids.size() << " distinct students in " << dept_query <<"."<<std::endl;
             std::cout << "Their IDs are ";
+        
             int firsttime = 1;
             for(auto elem : ids){
                 std::cout << firsttime ? elem : ", " + elem;
                 firsttime = 0;
             }
-           std::cout << "-----Start a new query-----" << std::endl;
+            std::cout << std::endl << "-----Start a new query-----" << std::endl;
         }
 
     }

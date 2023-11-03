@@ -177,7 +177,7 @@ int main(void)
                 for(auto &elem : dept_to_ids[request]){
                     std::cout << first ? elem : ", " + elem;
                     response += elem + ";";
-                    
+                    first = 0;
                 }
             }
             else{
