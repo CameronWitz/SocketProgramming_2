@@ -184,7 +184,8 @@ int main(int argc, char *argv[])
         
             int firsttime = 1;
             for(auto elem : ids){
-                std::cout << firsttime ? elem : ", " + elem;
+                std::string out = firsttime ? elem : ", " + elem;
+                std::cout << out;
                 firsttime = 0;
             }
             std::cout << std::endl << "-----Start a new query-----" << std::endl;

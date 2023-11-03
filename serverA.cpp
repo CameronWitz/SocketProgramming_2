@@ -175,7 +175,8 @@ int main(void)
                 std::cout << "Server " + myServer + " found " << dept_to_ids[request].size() << "distinct students for " << request << ": ";
                 int first = 1;
                 for(auto &elem : dept_to_ids[request]){
-                    std::cout << first ? elem : ", " + elem;
+                    std::string out = first ? elem : ", " + elem;
+                    std::cout << out;
                     response += elem + ";";
                     first = 0;
                 }
