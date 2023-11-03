@@ -59,8 +59,8 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
 
 int main(void)
 {
-    
     int mysockfd, serversockfd;
+    std::string myServer = "B";
     struct addrinfo hints, *servinfo, *p;
     int rv;
     int numbytes;
@@ -73,9 +73,11 @@ int main(void)
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE; // use my IP
 
+    
+
     std::unordered_map<std::string, std::set<std::string>> dept_to_ids;
 
-    readData(dept_to_ids, "dataB.txt"); //FIXME: Change this for the different servers
+    readData(dept_to_ids, "data" + myServer + ".txt"); //FIXME: Change this for the different servers
 
     // store linked list of potential hosting ports in servinfo
     if ((rv = getaddrinfo("localhost", MYPORT, &hints, &servinfo)) != 0) {
@@ -139,6 +141,8 @@ int main(void)
 
 
     // SETUP IS DONE
+    std::cout << "Server " << myServer << "is up and running using UDP on port " << MYPORT std::endl;
+  
     while(1) {  // respond to requests
         socklen_t addr_len = sizeof their_addr;
         numbytes = recvfrom(mysockfd, buf, MAXDATASIZE - 1, 0, (struct sockaddr *) &their_addr, &addr_len);
@@ -149,7 +153,7 @@ int main(void)
         buf[numbytes] = '\0';
         std::string request(buf);
 
-        std::cout << "Received request " << request << " from main server" << std::endl;
+        std::cout << "Server " + myServer + " has received a request for " << request << std::endl;
         
         std::string response = "";
         // special initial request
@@ -158,6 +162,7 @@ int main(void)
             for (const auto & it : dept_to_ids) {
                 response += it.first + ";";
             }
+            std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
         }
 
         // get the actual data for the associated request
@@ -167,8 +172,10 @@ int main(void)
                 found = 1;
             
             if(found){
-                
+                std::cout << "Server " + myServer + " found " << dept_to_ids[request].size() << "distinct students for " << request << ": ";
+                int first = 1;
                 for(auto &elem : dept_to_ids[request]){
+                    std::cout << first ? elem : ", " + elem;
                     response += elem + ";";
                     
                 }
@@ -183,7 +190,7 @@ int main(void)
             perror("sendto");
             exit(1);
         }
-        std::cout << "Sent response " << response << "to main server" << std::endl;
+        std::cout << "Server " << myServer << "has sent the results to Main Server" << std::endl;
 
     }
 
