@@ -153,7 +153,7 @@ int main(void)
         buf[numbytes] = '\0';
         std::string request(buf);
 
-        std::cout << "Server " + myServer + " has received a request for " << request << std::endl;
+        // std::cout << "Server " + myServer + " has received a request for " << request << std::endl;
         
         std::string response = "";
         // special initial request
@@ -163,7 +163,7 @@ int main(void)
                 response += it.first + ";";
             }
             
-            // std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
+            std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
         }
 
         // get the actual data for the associated request
