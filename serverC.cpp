@@ -163,11 +163,12 @@ int main(void)
                 response += it.first + ";";
             }
             
-            std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
+            // std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
         }
 
         // get the actual data for the associated request
         else{
+            std::cout << "Server " + myServer + " has received a request for " << request << std::endl;
             int found = 0;
             if(dept_to_ids.find(request) != dept_to_ids.end())
                 found = 1;
@@ -193,7 +194,8 @@ int main(void)
             perror("sendto");
             exit(1);
         }
-        std::cout << "Server " << myServer << "has sent the results to Main Server" << std::endl;
+
+        std::cout << "Server " << myServer << " has sent the results to Main Server" << std::endl;
 
     }
 
