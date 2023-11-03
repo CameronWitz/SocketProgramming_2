@@ -1,4 +1,4 @@
-SRCS := servermain.cpp serverA.cpp serrverB.cpp serverC.cpp
+SRCS := servermain.cpp serverA.cpp serverB.cpp serverC.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 # Compiler and compilation flags
@@ -23,4 +23,4 @@ serverC: serverC.o
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	$(RM) servermain server $(OBJS)
+	$(RM) servermain serverA serverB serverC $(OBJS)
