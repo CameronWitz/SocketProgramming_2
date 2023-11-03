@@ -49,7 +49,7 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
     //Output
     std::string server_str = backendServerInd == indexA ? "A" : backendServerInd == indexB ? "B" : "C";
     std::cout << "Main server has received the department list from Backend Server " << server_str;
-    std::cout << "using UDP over port " << MAINPORT << std::endl;
+    std::cout << " using UDP over port " << MAINPORT << std::endl;
 
     buf[numbytes] = '\0';
     std::string response(buf);
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
             struct sockaddr_storage their_addr;
             socklen_t addr_len = sizeof their_addr;
-            numbytes = sendto(sockfds[server], dept_query.c_str(), 5, 0, ps_addr[server], ps_addrlen[server]);
+            numbytes = sendto(sockfds[server], dept_query.c_str(), dept_query.length(), 0, ps_addr[server], ps_addrlen[server]);
             if(numbytes < 0){
                 perror("request send");
                 return -1;
