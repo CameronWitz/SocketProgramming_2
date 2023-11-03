@@ -27,3 +27,4 @@ department information.
 Reused Code:
 
 A lot of my code was initially based on Beej's guide, but I made many modifications myself.
+Every place where I used Beej's guide code is commented // Note: from Beej's guide.
