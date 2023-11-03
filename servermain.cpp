@@ -32,7 +32,7 @@
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, sockaddr *ps[], socklen_t ps_len[], int *sockfds){
-    std::cout << "Querying " << backendServer << std::endl;
+    // std::cout << "Querying " << backendServer << std::endl;
     int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd], ps_len[backendServerInd]);
     if(numbytes < 0){
         perror("list request send");
@@ -46,19 +46,23 @@ void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std
         perror("list request recv");
         return;
     }
+    //Output
+    std::string server_str = backendServerInd == indexA ? "A" : backendServerInd == indexB ? "B" : "C";
+    std::cout << "Main server has received the department list from Backend Server " << server_str;
+    std::cout << "using UDP over port " << MAINPORT << std::endl;
+
     buf[numbytes] = '\0';
     std::string response(buf);
-    std::cout << "Received " << response << std::endl;
-    
+    std::cout << "Server " + server_str << std::endl;
     size_t beginning = 0;
     for(size_t i = 0; i < response.length(); i++){
         if(response[i] == ';'){
             std::string dept = response.substr(beginning, i - beginning);
             beginning = i + 1;
             dept_to_server[dept] = backendServerInd;
+            std::cout << dept << std::endl;
         }
     }
-
 }
 
 
@@ -135,10 +139,13 @@ int main(int argc, char *argv[])
 
         // find the server that this dept is associated with
         if(dept_to_server.find(dept_query) == dept_to_server.end()){
-            std::cout << "Department does not appear in backend servers." << std::endl;
+            std::cout << "Department does not show up in Backend servers." << std::endl;
         }
         else{
             int server = dept_to_server[dept_query];
+            std::string server_str = server == indexA ? "A" : server == indexB ? "B" : "C";
+            std::cout << "Department " << dept_query << " shows up in server " << server_str << std::endl;
+
             struct sockaddr_storage their_addr;
             socklen_t addr_len = sizeof their_addr;
             numbytes = sendto(sockfds[server], dept_query.c_str(), 5, 0, ps_addr[server], ps_addrlen[server]);
@@ -146,6 +153,11 @@ int main(int argc, char *argv[])
                 perror("request send");
                 return -1;
             }
+
+            std::cout << "The Main Server has sent request for " << dept_query << " to server ";
+            std::cout << server_str << "using UDP over port " << MAINPORT << std::endl;
+
+
             numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
             if(numbytes < 0){
                 perror("request recv");
@@ -154,15 +166,26 @@ int main(int argc, char *argv[])
             buf[numbytes] = '\0';
             std::string response(buf);
             size_t beginning = 0;
-            std::cout << "Received the following ids:" << std::endl;
-            std::cout << response << std::endl;
+            
+            std::cout << "The Main server has received searching result(s) of " << dept_query;
+            std::cout << "from Backend server " << server_str << std::endl;
+
+            std::vector<std::string> ids;
             for(size_t i = 0; i < response.length(); i++){
                 if(response[i] == ';'){
                     std::string id = response.substr(beginning, i - beginning);
                     beginning = i + 1;
-                    std::cout << id << std::endl;
+                    ids.push_back(id);
                 }
             }
+            std::cout << "There are " << ids.size() << " distinct students in " << dept_query <<"."<<std::endl;
+            std::cout << "Their IDs are ";
+            int firsttime = 1;
+            for(auto elem : ids){
+                std::cout << firsttime ? elem : ", " + elem;
+                firsttime = 0;
+            }
+           std::cout << "-----Start a new query-----" << std::endl;
         }
 
     }
