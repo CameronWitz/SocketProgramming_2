@@ -141,7 +141,7 @@ int main(void)
 
 
     // SETUP IS DONE
-    std::cout << "Server " << myServer << "is up and running using UDP on port " << MYPORT << std::endl;
+    std::cout << "Server " << myServer << " is up and running using UDP on port " << MYPORT << std::endl;
   
     while(1) {  // respond to requests
         socklen_t addr_len = sizeof their_addr;
@@ -162,6 +162,7 @@ int main(void)
             for (const auto & it : dept_to_ids) {
                 response += it.first + ";";
             }
+            
             std::cout << "Server " + myServer + " has sent a department list to Main Server" << std::endl;
         }
 
@@ -172,7 +173,7 @@ int main(void)
                 found = 1;
             
             if(found){
-                std::cout << "Server " + myServer + " found " << dept_to_ids[request].size() << "distinct students for " << request << ": ";
+                std::cout << "Server " + myServer + " found " << dept_to_ids[request].size() << " distinct students for " << request << ": ";
                 int first = 1;
                 for(auto &elem : dept_to_ids[request]){
                     std::string out = first ? elem : ", " + elem;
@@ -180,6 +181,7 @@ int main(void)
                     response += elem + ";";
                     first = 0;
                 }
+                std::cout << std::endl;
             }
             else{
                 response = "Not Found.";
