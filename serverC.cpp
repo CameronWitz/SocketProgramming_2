@@ -195,7 +195,8 @@ int main(void)
             exit(1);
         }
 
-        std::cout << "Server " << myServer << " has sent the results to Main Server" << std::endl;
+        if(request != "*list")
+            std::cout << "Server " << myServer << " has sent the results to Main Server" << std::endl;
 
     }
 
