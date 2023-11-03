@@ -141,7 +141,7 @@ int main(void)
 
 
     // SETUP IS DONE
-    std::cout << "Server " << myServer << "is up and running using UDP on port " << MYPORT std::endl;
+    std::cout << "Server " << myServer << "is up and running using UDP on port " << MYPORT << std::endl;
   
     while(1) {  // respond to requests
         socklen_t addr_len = sizeof their_addr;
