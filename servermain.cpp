@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         ps_addrlen[i] = p->ai_addrlen;
     }
 
-    std::cout << "Main server is up and running" << std::endl;
+    std::cout << "Main server is up and running." << std::endl;
 
     // query backend servers for departments
     std::unordered_map<std::string, int> dept_to_server;
