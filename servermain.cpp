@@ -18,7 +18,7 @@
 #include <unordered_map>
 
 #include <arpa/inet.h>
-
+// used to keep track of which ports in my array belong to which server
 #define indexA 0
 #define indexB 1
 #define indexC 2
@@ -31,6 +31,12 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
+
+/*
+This function is used to request the department names each backend server is responsible for, and add them 
+to a map which is used in the main function of the program. Because it retrieves and stores the information 
+from a single backend server at a time, this function also produces the output of displaying what was retrieved.
+*/
 void askForDepts(int backendServer, int backendServerInd, std::unordered_map<std::string, int> &dept_to_server, sockaddr *ps[], socklen_t ps_len[], int *sockfds){
     // std::cout << "Querying " << backendServer << std::endl;
     int numbytes = sendto(backendServer, "*list", 5, 0, ps[backendServerInd], ps_len[backendServerInd]);
@@ -78,7 +84,7 @@ int main(int argc, char *argv[])
     struct addrinfo hints, *servinfo, *p;
     int rv;
    
-    // Set up sockets
+    // Set up sockets, only binding for our port
     for(int i = 0; i < 4; i ++){
         
         memset(&hints, 0, sizeof hints);
@@ -128,9 +134,9 @@ int main(int argc, char *argv[])
     // query backend servers for departments
     std::unordered_map<std::string, int> dept_to_server;
     
-    askForDepts(sockfds[indexA], indexA, dept_to_server, ps_addr, ps_addrlen, sockfds);
-    askForDepts(sockfds[indexB], indexB, dept_to_server, ps_addr, ps_addrlen, sockfds);
-    askForDepts(sockfds[indexC], indexC, dept_to_server, ps_addr, ps_addrlen, sockfds);
+    askForDepts(sockfds[indexA], indexA, dept_to_server, ps_addr, ps_addrlen, sockfds); // request depts from serverA
+    askForDepts(sockfds[indexB], indexB, dept_to_server, ps_addr, ps_addrlen, sockfds); // request depts from serverB
+    askForDepts(sockfds[indexC], indexC, dept_to_server, ps_addr, ps_addrlen, sockfds); // request depts from serverC
 
     while(1){
         std::string dept_query;
@@ -143,11 +149,12 @@ int main(int argc, char *argv[])
         }
         else{
             int server = dept_to_server[dept_query];
-            std::string server_str = server == indexA ? "A" : server == indexB ? "B" : "C";
+            std::string server_str = server == indexA ? "A" : server == indexB ? "B" : "C"; // get server name based on index
             std::cout << "Department " << dept_query << " shows up in server " << server_str << std::endl;
 
             struct sockaddr_storage their_addr;
             socklen_t addr_len = sizeof their_addr;
+            // request the query
             numbytes = sendto(sockfds[server], dept_query.c_str(), dept_query.length(), 0, ps_addr[server], ps_addrlen[server]);
             if(numbytes < 0){
                 perror("request send");
@@ -157,7 +164,7 @@ int main(int argc, char *argv[])
             std::cout << "The Main Server has sent request for " << dept_query << " to server ";
             std::cout << server_str << " using UDP over port " << MAINPORT << std::endl;
 
-
+            // retrieve the student ids 
             numbytes = recvfrom(sockfds[indexMain], buf, MAXDATASIZE - 1, 0, (struct sockaddr *)&their_addr, &addr_len);
             if(numbytes < 0){
                 perror("request recv");
@@ -172,6 +179,7 @@ int main(int argc, char *argv[])
             // std::cout << "DEBUG: " << response << std::endl;
 
             std::vector<std::string> ids;
+            // parse out the ids
             for(size_t i = 0; i < response.length(); i++){
                 if(response[i] == ';'){
                     std::string id = response.substr(beginning, i - beginning);
@@ -183,6 +191,7 @@ int main(int argc, char *argv[])
             std::cout << "Their IDs are ";
         
             int firsttime = 1;
+            // print the ids 
             for(auto elem : ids){
                 std::string out = firsttime ? elem : ", " + elem;
                 std::cout << out;

@@ -24,8 +24,7 @@
 #define MYPORT "30659"  // the port users will be connecting to
 #define MAINPORT "33659"
 
-#define BACKLOG 10  // how many pending connections queue will hold
-#define MAXDATASIZE 1024 // max request size (Department name), unlikely to be larger than this
+#define MAXDATASIZE 1024 // max request size, unlikely to be larger than this
 
 // Reads the data from data#.txt where # is A, B or C
 void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_ids, std::string filename){
@@ -40,6 +39,7 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
         std::set<std::string> ids_set;
         for(size_t i = 0; i < student_ids.length(); i++){
             char cur = student_ids[i];
+            // this will parse the id out of the semicolon separated string
             if(cur == ';'){
                 std::string cur_id = student_ids.substr(beginning, i-beginning);
                 if(ids_set.find(cur_id) == ids_set.end() || ids_set.empty()) // making sure they are unique
@@ -48,6 +48,7 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
                 
             }
         }
+        // added this because there is no closing semicolon in the data
         std::string last_id = student_ids.substr(beginning, student_ids.length()-beginning);
         if(ids_set.find(last_id) == ids_set.end() || ids_set.empty()) // making sure they are unique
             ids_set.insert(last_id);
@@ -60,13 +61,14 @@ void readData(std::unordered_map<std::string, std::set<std::string>> &dept_to_id
 int main(void)
 {
     int mysockfd, serversockfd;
-    std::string myServer = "A";
+    std::string myServer = "A"; // defines the server data file to read from and label it prints
     struct addrinfo hints, *servinfo, *p;
     int rv;
     int numbytes;
     struct sockaddr_storage their_addr;
     char buf[MAXDATASIZE];
 
+    //Note: From Beejs guide
     // First set up for listening on our port
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET6; // ipv6
@@ -75,16 +77,18 @@ int main(void)
 
     
 
-    std::unordered_map<std::string, std::set<std::string>> dept_to_ids;
+    std::unordered_map<std::string, std::set<std::string>> dept_to_ids; // map from dept to id
 
-    readData(dept_to_ids, "data" + myServer + ".txt"); //FIXME: Change this for the different servers
+    readData(dept_to_ids, "data" + myServer + ".txt"); 
 
-    // store linked list of potential hosting ports in servinfo
+    //Note: From Beejs guide
+    // store linked list of potential hosting ports in servinfo 
     if ((rv = getaddrinfo("localhost", MYPORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
 
+     //Note: From Beejs guide
     // loop through all the results and bind to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((mysockfd = socket(p->ai_family, p->ai_socktype,
@@ -101,9 +105,9 @@ int main(void)
 
         break;
     }
-
+    //Note: From Beejs guide
     freeaddrinfo(servinfo); // all done with this structure
-
+    //Note: From Beejs guide
     if (p == NULL)  {
         fprintf(stderr, "server: failed to bind\n");
         exit(1);
